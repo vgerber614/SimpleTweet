@@ -39,7 +39,7 @@ GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
 
-Describe any challenges encountered while building the app.
+The most difficult part for me was getting the remaining character count the way I wanted it because the resource we were given had a very specific solution with not much detail on how we could alter it.
 
 # Part 1
 
