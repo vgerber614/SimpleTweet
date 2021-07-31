@@ -1,18 +1,25 @@
 package com.codepath.apps.restclienttemplate;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +29,7 @@ import okhttp3.Headers;
 public class TimelineActivity extends AppCompatActivity {
 
     public static final String TAG = "TimelineActivity";
+    private final int REQUEST_CODE = 20;
 
     TwitterClient client;
     RecyclerView rvTweets;
@@ -39,6 +47,15 @@ public class TimelineActivity extends AppCompatActivity {
         // find the recycler view and swipe container
         rvTweets = findViewById(R.id.rvTweets);
         swipeContainer = findViewById(R.id.swipeContainer);
+
+        // config action bar
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayShowTitleEnabled(false);
+            actionBar.setDisplayShowHomeEnabled(true);
+            actionBar.setLogo(R.drawable.logo_white);
+            actionBar.setDisplayUseLogoEnabled(true);
+        }
 
         // init list of tweets and adapter
         tweets = new ArrayList<>();
@@ -64,6 +81,29 @@ public class TimelineActivity extends AppCompatActivity {
                 android.R.color.holo_red_light);
     }
 
+    // populate items in the action bar
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu -- adds items from the xml to action bar
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+            // get the data (tweet) from the intent
+            Tweet tweet = Parcels.unwrap(data.getParcelableExtra("tweet"));
+            // update the recycler view with the tweet
+            // modify data source of tweets
+            tweets.add(0, tweet);
+            // update the adapter
+            adapter.notifyItemInserted(0);
+            rvTweets.smoothScrollToPosition(0);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
     private void populateHomeTimeline() {
         client.getHomeTimeline(new JsonHttpResponseHandler() {
             @Override
@@ -83,6 +123,12 @@ public class TimelineActivity extends AppCompatActivity {
                 Log.e(TAG, "onFailure " + response, throwable);
             }
         });
+    }
+
+    // when compose menu item is clicked
+    public void onComposeAction(MenuItem mi) {
+        Intent intent = new Intent(this, ComposeActivity.class);
+        startActivityForResult(intent, REQUEST_CODE);
     }
 
     public void fetchTimelineAsync(int page) {
